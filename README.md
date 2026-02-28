@@ -128,3 +128,20 @@ flutter:
     - assets/bin/busybox
     cd terminal_app
 flutter build apk --release --split-per-abi
+Future<void> setupEngine() async {
+  final directory = await getApplicationDocumentsDirectory();
+  final exePath = '${directory.path}/dr-terminal';
+  final file = File(exePath);
+
+  if (!await file.exists()) {
+    // 1. Extraer el binario de Go desde los Assets
+    final data = await rootBundle.load('assets/bin/dr-terminal');
+    final bytes = data.buffer.asUint8List();
+    
+    // 2. Escribirlo en la memoria interna donde SI podemos dar permisos
+    await file.writeAsBytes(bytes, flush: true);
+    
+    // 3. Aplicar el chmod 755 de forma programática
+    await Process.run('chmod', ['755', exePath]);
+  }
+}
